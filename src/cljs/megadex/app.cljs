@@ -1,11 +1,12 @@
 (ns megadex.app
-    (:require [reagent.core :as r]
-              [datascript :as d]
-              [reagent.session :as session]
-              [secretary.core :as secretary :include-macros true]
-              [goog.events :as events]
-              [goog.history.EventType :as EventType])
-    (:import goog.History))
+  (:require-macros [cljs.core.async.macros :refer [go-loop]])
+  (:require [cljs.core.async :refer [put! chan <! close!]]
+            [reagent.core :as r]
+            [datascript :as d]
+            [bidi.bidi :as bidi]
+            [goog.events :as events]
+            [goog.history.EventType :as EventType])
+  (:import goog.History))
 
 ;; -------------------------
 ;; Views
@@ -18,32 +19,40 @@
   [:div [:h2 "About megadex"]
    [:div [:a {:href "#/"} "go to the home page"]]])
 
-(defn current-page []
-  [:div [(session/get :current-page)]])
+;; -------------------------
+;; History
+(defn hook-browser-navigation! []
+  (let [navigation-chan (chan)]
+    (doto (History.)
+      (events/listen
+       EventType/NAVIGATE
+       (fn [event] (put! navigation-chan (.-token event))))
+      (.setEnabled true)
+      (.setToken "/"))
+    navigation-chan))
 
 ;; -------------------------
 ;; Routes
-(secretary/set-config! :prefix "#")
+(def routes
+  ["/" {"" home-page
+        "about" about-page}])
 
-(secretary/defroute "/" []
-  (session/put! :current-page home-page))
-
-(secretary/defroute "/about" []
-  (session/put! :current-page about-page))
+(defn router [routes home-page]
+  (let [navigation-c (hook-browser-navigation!)
+        current-page (r/atom home-page)]
+    (r/create-class
+     {:render (fn [_] [:div [@current-page]])
+      :component-will-mount
+      (fn [_]
+        (go-loop []
+          (reset! current-page
+                  (->> (<! navigation-c)
+                       (bidi/match-route routes)
+                       :handler))
+          (recur)))
+      :component-will-unmount (fn [_] (close! navigation-c))})))
 
 ;; -------------------------
 ;; Initialize app
 (defn init! []
-  (r/render-component [current-page] (.getElementById js/document "app")))
-
-;; -------------------------
-;; History
-(defn hook-browser-navigation! []
-  (doto (History.)
-    (events/listen
-     EventType/NAVIGATE
-     (fn [event]
-       (secretary/dispatch! (.-token event))))
-    (.setEnabled true)))
-;; need to run this after routes have been defined
-(hook-browser-navigation!)
+  (r/render [router routes home-page] (.getElementById js/document "app")))
