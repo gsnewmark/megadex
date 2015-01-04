@@ -205,3 +205,10 @@
         (concat [arcana-type-datom] (mapcat persona-datom ps))))
     personas)))
 
+(def schema
+  {:persona/arcana {:db/valueType :db.type/ref}
+   :persona.skill/persona {:db/valueType :db.type/ref}
+   :persona.skill/skill {:db/valueType :db.type/ref}
+   :skill-type/super-type {:db/valueType :db.type/ref}
+   :skill/type {:db/valueType :db.type/ref}})
+

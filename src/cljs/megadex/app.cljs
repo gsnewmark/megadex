@@ -19,7 +19,8 @@
 
 (defn init! []
   (go-loop []
-    (if-let [fixture (<! (util/fetch-edn "/fixtures/p4g.edn"))]
-      (prn fixture)
+    (if-let [{:keys [schema fixture]} (<! (util/fetch-edn "/fixtures/p4g.edn"))]
+      (let [conn (d/create-conn schema)]
+        (d/transact! conn fixture))
       (recur)))
   (r/render [util/router routes] (.getElementById js/document "app")))

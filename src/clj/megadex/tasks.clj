@@ -19,4 +19,5 @@
             p4g/personas
             (p4g/personas-fixture (p4g/skills-ids skills)))]
     (spit "resources/public/fixtures/p4g.edn"
-          (with-out-str (pr (into [] (concat skills personas)))))))
+          (with-out-str (pr {:schema p4g/schema
+                             :fixture (into [] (concat skills personas))})))))
