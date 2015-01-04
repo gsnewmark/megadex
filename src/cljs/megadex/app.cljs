@@ -33,26 +33,21 @@
 
 ;; -------------------------
 ;; Routes
-(def routes
+(defn routes []
   ["/" {"" home-page
         "about" about-page}])
 
-(defn router [routes home-page]
+(defn router [routes-fn]
   (let [navigation-c (hook-browser-navigation!)
-        current-page (r/atom home-page)]
+        current-page (r/atom "/")]
     (r/create-class
-     {:render (fn [_] [:div [@current-page]])
+     {:render
+      (fn [_] [:div [(->> @current-page (bidi/match-route (routes-fn)) :handler)]])
       :component-will-mount
-      (fn [_]
-        (go-loop []
-          (reset! current-page
-                  (->> (<! navigation-c)
-                       (bidi/match-route routes)
-                       :handler))
-          (recur)))
+      (fn [_] (go-loop [] (reset! current-page (<! navigation-c)) (recur)))
       :component-will-unmount (fn [_] (close! navigation-c))})))
 
 ;; -------------------------
 ;; Initialize app
 (defn init! []
-  (r/render [router routes home-page] (.getElementById js/document "app")))
+  (r/render [router routes] (.getElementById js/document "app")))
