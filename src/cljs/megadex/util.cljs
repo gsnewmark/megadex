@@ -3,6 +3,8 @@
   (:require [bidi.bidi :as bidi]
             [cljs.core.async :refer [<! chan close! put! sliding-buffer]]
             [cljs.reader :refer [read-string]]
+            [cljs-uuid.core :as uuid]
+            [datascript :as d]
             [goog.events :as events]
             [goog.history.EventType :as EventType]
             [reagent.core :as r])
@@ -32,3 +34,19 @@
     (fn [_]
       [:div [(->> @current-page (bidi/match-route (routes-fn)) :handler)]])))
 
+(defn bind
+  ([conn q]
+   (bind conn q (r/atom nil)))
+  ([conn q state]
+   (let [k (uuid/make-random)]
+     (reset! state (d/q q @conn))
+     (d/listen! conn k (fn [tx-report]
+                         (let [novelty (d/q q (:tx-data tx-report))]
+                           (when (not-empty novelty)
+                             (reset! state (d/q q (:db-after tx-report)))))))
+     (set! (.-__key state) k)
+     state)))
+
+(defn unbind
+  [conn state]
+  (d/unlisten! conn (.-__key state)))

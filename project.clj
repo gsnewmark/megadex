@@ -14,6 +14,7 @@
                  [datascript "0.7.2"]
                  [org.clojure/clojurescript "0.0-2511" :scope "provided"]
                  [com.cemerick/piggieback "0.1.3"]
+                 [cljs-uuid "0.0.4"]
                  [weasel "0.4.2"]
                  [ring "1.3.2"]
                  [ring/ring-defaults "0.1.2"]
