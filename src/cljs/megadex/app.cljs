@@ -5,30 +5,35 @@
             [megadex.util :as u]
             [reagent.core :as r]))
 
-(defn home-page [conn]
-  (let [q '[:find ?persona
-            :where
-            [_ :persona/name ?persona]]
-        personas (u/bind conn q)]
-    (fn []
-      (let [ps (sort-by first @personas)]
-        [:div
-         [:h2 "Welcome to megadex"]
-         [:h3 (str "Personas (" (count ps) "):")]
-         [:ul (map (fn [[persona]] [:li persona]) ps)]
-         [:div [:a {:href "#/about"} "go to about page"]]]))))
+(defn personas-list-for-arcana [[arcana personas]]
+  [:div
+   [:h3 arcana]
+   [:ul
+    (for [persona personas]
+      ^{:key persona} [:li persona])]])
 
-(defn about-page []
-  [:div [:h2 "About megadex"]
-   [:div [:a {:href "#/"} "go to the home page"]]])
+(defn arcanas [conn]
+  (let [q '[:find ?arcana ?persona ?level
+            :where
+            [?aid :arcana/name ?arcana]
+            [?pid :persona/arcana ?aid]
+            [?pid :persona/name ?persona]]
+        arcanas (u/bind conn q)]
+    (fn []
+      (let [as (->> @arcanas
+                    (group-by first)
+                    (u/map-over-vals #(map second %))
+                    (sort-by first))]
+        [:div
+         (for [a as]
+           ^{:key (first a)} [personas-list-for-arcana a])]))))
 
 (defn loading []
   [:div.loading "Loading..."])
 
 (defn routes [conn]
   (fn []
-    ["/" {"" (home-page conn)
-          "about" about-page}]))
+    ["/" {"" (arcanas conn)}]))
 
 (defn init! []
   (let [navigation (u/hook-browser-navigation!)

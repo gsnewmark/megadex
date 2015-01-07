@@ -10,6 +10,17 @@
             [reagent.core :as r])
   (:import goog.History goog.net.XhrIo))
 
+(defn map-over-vals [f m]
+  (into {} (for [[k v] m] [k (f v)])))
+
+
+(defn fetch-edn [url]
+  (let [c (chan (sliding-buffer 1))]
+    (.send XhrIo url
+           (fn [e] (put! c (read-string (.getResponseText (.-target e))))))
+    c))
+
+
 (defn hook-browser-navigation! []
   (let [navigation-chan (chan (sliding-buffer 1))]
     (doto (History.)
@@ -20,11 +31,6 @@
       (.setToken "/"))
     navigation-chan))
 
-(defn fetch-edn [url]
-  (let [c (chan (sliding-buffer 1))]
-    (.send XhrIo url
-           (fn [e] (put! c (read-string (.getResponseText (.-target e))))))
-    c))
 
 (defn router [navigation-c routes-fn]
   (let [current-page (r/atom "/")]
@@ -33,6 +39,7 @@
       (recur))
     (fn [_]
       [:div [(->> @current-page (bidi/match-route (routes-fn)) :handler)]])))
+
 
 (defn bind
   ([conn q]
