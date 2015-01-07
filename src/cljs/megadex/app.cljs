@@ -9,20 +9,21 @@
   [:div
    [:h3 arcana]
    [:ul
-    (for [persona personas]
-      ^{:key persona} [:li persona])]])
+    (for [[persona level] (sort-by second personas)]
+      ^{:key persona} [:li level " - " persona])]])
 
 (defn arcanas [conn]
   (let [q '[:find ?arcana ?persona ?level
             :where
             [?aid :arcana/name ?arcana]
             [?pid :persona/arcana ?aid]
-            [?pid :persona/name ?persona]]
+            [?pid :persona/name ?persona]
+            [?pid :persona/level ?level]]
         arcanas (u/bind conn q)]
     (fn []
       (let [as (->> @arcanas
                     (group-by first)
-                    (u/map-over-vals #(map second %))
+                    (u/map-over-vals #(map rest %))
                     (sort-by first))]
         [:div
          (for [a as]
