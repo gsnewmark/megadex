@@ -5,6 +5,9 @@
 (defn sanitize-text [text]
   (or (first (re-seq #"[A-Za-z0-9 %,~_\-.\"':]+" text)) ""))
 
+(defn normalize-text [text]
+  (cstr/replace text #"[^A-Za-z0-9_-]+" "_"))
+
 (defn html->text [html]
   ((comp cstr/trim sanitize-text html/text) html))
 
@@ -143,7 +146,9 @@
       (let [current-type-id (next-id)
 
             skill-type-datom
-            (merge {:db/id current-type-id :skill-type/name type}
+            (merge {:db/id current-type-id
+                    :skill-type/name type
+                    :skill-type/normalized-name (normalize-text type)}
                    (if supertype-id
                      {:skill-type/super-type supertype-id}
                      {}))
@@ -152,7 +157,8 @@
             (fn [[name specs]]
               (into {:db/id (next-id)
                      :skill/type current-type-id
-                     :skill/name name}
+                     :skill/name name
+                     :skill/normalized-name (normalize-text name)}
                     (to-fixture-props "skill" specs)))]
         (concat
          [skill-type-datom]
@@ -177,7 +183,9 @@
       (let [current-arcana-id (next-id)
 
             arcana-type-datom
-            {:db/id current-arcana-id :arcana/name arcana}
+            {:db/id current-arcana-id
+             :arcana/name arcana
+             :arcana/normalized-name (normalize-text arcana)}
 
             persona-datom
             (fn [[name {:keys [skills elemental stats level]}]]
@@ -186,6 +194,7 @@
                     {:db/id persona-id
                      :persona/arcana current-arcana-id
                      :persona/name name
+                     :persona/normalized-name (normalize-text name)
                      :persona/level level}]
                 (conj
                  (->> skills

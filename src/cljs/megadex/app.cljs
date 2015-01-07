@@ -13,10 +13,10 @@
                              ["/persona/" :persona] ::persona-page}}])
 
 
-(defn persona-page [conn name]
-  (let [persona-q (u/bind conn q/persona name)]
+(defn persona-page [conn normalized-name]
+  (let [persona-q (u/bind conn q/persona normalized-name)]
     (fn []
-      (let [[arcana level
+      (let [[name arcana level
              st ma en ag lu
              inherit resists block absorbs reflects weak] (first @persona-q)]
         [:div
@@ -35,36 +35,38 @@
          [:p [:b "Reflects: "] reflects]
          [:p [:b "Weak: "] weak]]))))
 
-(defn arcana-page [conn name]
-  (let [arcana-q (u/bind conn q/arcana-with-personas name)]
+(defn arcana-page [conn normalized-name]
+  (let [arcana-q (u/bind conn q/arcana-with-personas normalized-name)]
     (fn []
       [:div
        (for [[persona] (sort-by second @arcana-q)]
          ^{:key persona}
          [persona-page conn persona])])))
 
-(defn arcana-overview [[arcana personas]]
+(defn arcana-overview [[[arcana arcana-normalized] data]]
   [:div
-   (u/link (bidi/path-for routes ::arcana-page :arcana arcana)
+   (u/link (bidi/path-for routes ::arcana-page :arcana arcana-normalized)
            [:h3 arcana])
    [:ul
-    (for [[persona level] (sort-by second personas)]
+    (for [[persona persona-normalized level] (sort-by #(nth % 2) data)]
       ^{:key persona}
       [:li level " - "
        (u/link (bidi/path-for routes ::persona-page
-                              :arcana arcana :persona persona)
+                              :arcana arcana-normalized
+                              :persona persona-normalized)
                persona)])]])
 
 (defn arcanas-page [conn]
   (let [arcanas-q (u/bind conn q/arcanas-with-personas)]
     (fn []
       (let [arcanas (->> @arcanas-q
+                         (map (partial split-at 2))
                          (group-by first)
-                         (u/map-over-vals #(map rest %))
-                         (sort-by first))]
+                         (u/map-over-vals #(map second %))
+                         (sort-by (comp first first)))]
         [:div
          (for [arcana arcanas]
-           ^{:key (first arcana)} [arcana-overview arcana])]))))
+           ^{:key (first (first arcana))} [arcana-overview arcana])]))))
 
 (defn loading-page []
   [:div.loading "Loading..."])
