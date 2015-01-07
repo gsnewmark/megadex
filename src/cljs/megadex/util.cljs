@@ -1,7 +1,6 @@
 (ns megadex.util
   (:require-macros [cljs.core.async.macros :refer [go-loop]])
-  (:require [bidi.bidi :as bidi]
-            [cljs.core.async :refer [<! chan close! put! sliding-buffer]]
+  (:require [cljs.core.async :refer [<! chan close! put! sliding-buffer]]
             [cljs.reader :refer [read-string]]
             [cljs-uuid.core :as uuid]
             [datascript :as d]
@@ -32,28 +31,30 @@
     navigation-chan))
 
 
-(defn router [navigation-c routes-fn]
-  (let [current-page (r/atom "/")]
-    (go-loop []
-      (reset! current-page (<! navigation-c))
-      (recur))
-    (fn [_]
-      [:div [(->> @current-page (bidi/match-route (routes-fn)) :handler)]])))
-
+(defn bind-to-state
+  [conn state q & args]
+  (let [k (uuid/make-random)
+        rq (fn [c] (if (seq? args)
+                     (apply d/q q c args)
+                     (d/q q c)))]
+    (reset! state (rq @conn))
+    (d/listen! conn k (fn [tx-report]
+                        (let [novelty (rq (:tx-data tx-report))]
+                          (when (not-empty novelty)
+                            (reset! state (rq (:db-after tx-report)))))))
+    (set! (.-__key state) k)
+    state))
 
 (defn bind
   ([conn q]
-   (bind conn q (r/atom nil)))
-  ([conn q state]
-   (let [k (uuid/make-random)]
-     (reset! state (d/q q @conn))
-     (d/listen! conn k (fn [tx-report]
-                         (let [novelty (d/q q (:tx-data tx-report))]
-                           (when (not-empty novelty)
-                             (reset! state (d/q q (:db-after tx-report)))))))
-     (set! (.-__key state) k)
-     state)))
+   (bind-to-state conn (r/atom nil) q))
+  ([conn q & args]
+   (apply bind-to-state conn (r/atom nil) q args)))
 
 (defn unbind
   [conn state]
   (d/unlisten! conn (.-__key state)))
+
+
+(defn link [uri body]
+  [:a {:href (str "#" uri)} body])
