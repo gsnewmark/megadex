@@ -13,12 +13,24 @@
                              ["/persona/" :persona] ::persona-page}}])
 
 
+(defn skill-view [[name level effect cost]]
+  [:div level " - " [:b name] ": " effect " (" cost ")"])
+
 (defn persona-page [conn normalized-name]
-  (let [persona-q (u/bind conn q/persona normalized-name)]
+  (let [persona-q (u/bind conn q/persona normalized-name)
+        skills-q (u/bind conn q/skills-of-persona normalized-name)]
     (fn []
       (let [[name arcana level
              st ma en ag lu
-             inherit resists block absorbs reflects weak] (first @persona-q)]
+             inherit resists block absorbs reflects weak] (first @persona-q)
+
+             sorted-skills
+             (sort-by second
+                      #(cond
+                         (= %1 "Innate") -1
+                         (= %2 "Innate") 1
+                         :default (- (js/parseInt %1) (js/parseInt %2)))
+                      @skills-q)]
         [:div
          [:h3 name]
          [:p [:b "Arcana: "] arcana]
@@ -33,7 +45,12 @@
          [:p [:b "Block: "] block]
          [:p [:b "Absorbs: "] absorbs]
          [:p [:b "Reflects: "] reflects]
-         [:p [:b "Weak: "] weak]]))))
+         [:p [:b "Weak: "] weak]
+         [:h4 "Skills"]
+         [:div
+          (for [skill sorted-skills]
+            ^{:key (first skill)}
+            (skill-view skill))]]))))
 
 (defn arcana-page [conn normalized-name]
   (let [arcana-q (u/bind conn q/arcana-with-personas normalized-name)]

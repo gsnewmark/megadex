@@ -27,6 +27,20 @@
     [?pid :persona.elements/reflects ?reflects]
     [?pid :persona.elements/weak ?weak]])
 
+(def skills-of-persona
+  '[:find ?name ?level ?effect ?cost
+
+    :in $ ?persona-normalized
+
+    :where
+    [?pid :persona/normalized-name ?persona-normalized]
+    [?psid :persona.skill/persona ?pid]
+    [?psid :persona.skill/skill ?sid]
+    [?psid :persona.skill/level-acquired ?level]
+    [?sid :skill/name ?name]
+    [?sid :skill/effect ?effect]
+    [?sid :skill/cost ?cost]])
+
 (def arcanas-with-personas
   '[:find ?arcana ?arcana-normalized ?persona ?persona-normalized ?level
 
