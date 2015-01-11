@@ -6,7 +6,11 @@
   (or (first (re-seq #"[A-Za-z0-9 %,~_\-.\"':]+" text)) ""))
 
 (defn normalize-text [text]
-  (cstr/replace text #"[^A-Za-z0-9_-]+" "_"))
+  (-> text
+      (cstr/replace #"[^A-Za-z0-9_-]+" "_")
+      (cstr/replace #"^_+" "")
+      (cstr/replace #"_+$" "")
+      cstr/lower-case))
 
 (defn html->text [html]
   ((comp cstr/trim sanitize-text html/text) html))
