@@ -5,12 +5,20 @@
             [datascript :as d]
             [megadex.query :as q]
             [megadex.util :as u]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [reagent-forms.core :refer [bind-fields]]))
 
 (def routes
   ["/" {"" ::arcanas-page
         ["arcana/" :arcana] {"" ::arcana-page
                              ["/persona/" :persona] ::persona-page}}])
+
+(defn path-for-arcana [arcana-normalized]
+  (bidi/path-for routes ::arcana-page :arcana arcana-normalized))
+
+(defn path-for-persona [arcana-normalized persona-normalized]
+  (bidi/path-for routes ::persona-page
+                 :arcana arcana-normalized :persona persona-normalized))
 
 
 (defn skill-view [[name level effect cost]]
@@ -62,18 +70,39 @@
 
 (defn arcana-overview [[[arcana arcana-normalized] data]]
   [:div
-   (u/link (bidi/path-for routes ::arcana-page :arcana arcana-normalized)
-           [:h3 arcana])
+   (u/link (path-for-arcana arcana-normalized) [:h3 arcana])
    [:ul
     (for [[persona persona-normalized level] (sort-by #(nth % 2) data)]
       ^{:key persona}
       [:li level " - "
-       (u/link (bidi/path-for routes ::persona-page
-                              :arcana arcana-normalized
-                              :persona persona-normalized)
+       (u/link (path-for-persona arcana-normalized persona-normalized)
                persona)])]])
 
-(defn arcanas-page [conn]
+(defn links-for [arcanas]
+  (->> (mapcat (fn [[[a an] ps]]
+                 (conj (map (fn [[p pn]] [p (path-for-persona an pn)]) ps)
+                       [a (path-for-arcana an)]))
+               arcanas)
+       (into {})))
+
+(defn quick-select-view [history arcanas]
+  (let [links (links-for arcanas)
+        template
+        [:div {:field :typeahead :id :selected
+               :data-source (u/typeahead-source (keys links))}]
+        data (r/atom {})]
+    (fn []
+      (let [selected (:selected @data)
+            link (get links selected)]
+        [:div
+         [:h2 "Quick select"]
+         [bind-fields template data
+          (fn [[id] value {:keys [selected]}]
+            (when (and (= id :selected) selected)
+              (when-let [link  (get links value)]
+                (.setToken history link))))]]))))
+
+(defn arcanas-page [conn history]
   (let [arcanas-q (u/bind conn q/arcanas-with-personas)]
     (fn []
       (let [arcanas (->> @arcanas-q
@@ -82,6 +111,7 @@
                          (u/map-over-vals #(map second %))
                          (sort-by (comp first first)))]
         [:div
+         [quick-select-view history arcanas]
          (for [arcana arcanas]
            ^{:key (first (first arcana))} [arcana-overview arcana])]))))
 
@@ -89,7 +119,7 @@
   [:div.loading "Loading..."])
 
 
-(defn router [navigation-c routes conn]
+(defn router [history navigation-c routes conn]
   (let [current-page (r/atom "/")]
     (go-loop []
       (reset! current-page (<! navigation-c))
@@ -99,7 +129,7 @@
             (bidi/match-route routes @current-page)]
         [:div
          (condp = handler
-           ::arcanas-page [arcanas-page conn]
+           ::arcanas-page [arcanas-page conn history]
            ::arcana-page [arcana-page conn (:arcana route-params)]
            ::persona-page [persona-page conn (:persona route-params)])]))))
 
@@ -109,10 +139,12 @@
         dom (.getElementById js/document "app")]
     (when (= "" (.getToken history))
       (.setToken history "/"))
+    (when (.-orientation js/window)
+      (.initializeTouchEvents js/React true))
     (r/render [loading-page] dom)
     (go-loop []
       (if-let [{:keys [schema fixture]} (<! (u/fetch-edn "/fixtures/p4g.edn"))]
         (let [conn (d/create-conn schema)]
           (d/transact! conn fixture)
-          (r/render [router navigation routes conn] dom))
+          (r/render [router history navigation routes conn] dom))
         (recur)))))

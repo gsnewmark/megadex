@@ -58,3 +58,7 @@
 
 (defn link [uri body]
   [:a {:href (str "#" uri)} body])
+
+(defn typeahead-source [options]
+  (fn [text]
+    (filter #(-> % (.toLowerCase %) (.indexOf text) (> -1)) options)))

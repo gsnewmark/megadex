@@ -10,6 +10,7 @@
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [com.facebook/react "0.12.1"]
                  [reagent "0.5.0-alpha"]
+                 [reagent-forms "0.3.9"]
                  [bidi "1.12.0"]
                  [datascript "0.7.2"]
                  [org.clojure/clojurescript "0.0-2511" :scope "provided"]
