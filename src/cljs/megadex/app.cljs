@@ -105,8 +105,10 @@
 
 
 (defn init! []
-  (let [navigation (u/hook-browser-navigation!)
+  (let [[history navigation] (u/hook-browser-navigation!)
         dom (.getElementById js/document "app")]
+    (when (= "" (.getToken history))
+      (.setToken history "/"))
     (r/render [loading-page] dom)
     (go-loop []
       (if-let [{:keys [schema fixture]} (<! (u/fetch-edn "/fixtures/p4g.edn"))]

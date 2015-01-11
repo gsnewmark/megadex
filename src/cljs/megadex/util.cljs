@@ -21,14 +21,14 @@
 
 
 (defn hook-browser-navigation! []
-  (let [navigation-chan (chan (sliding-buffer 1))]
-    (doto (History.)
+  (let [navigation-chan (chan (sliding-buffer 1))
+        history (History.)]
+    (doto history
       (events/listen
        EventType/NAVIGATE
        (fn [event] (put! navigation-chan (.-token event))))
-      (.setEnabled true)
-      (.setToken "/"))
-    navigation-chan))
+      (.setEnabled true))
+    [history navigation-chan]))
 
 
 (defn bind-to-state
