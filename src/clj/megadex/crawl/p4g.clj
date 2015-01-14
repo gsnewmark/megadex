@@ -207,7 +207,9 @@
                          (when-let [skill-id (get skills-ids skill-name)]
                            {:db/id (next-id)
                             :persona.skill/persona persona-id
-                            :persona.skill/level-acquired (get skill "Level")
+                            :persona.skill/level-acquired
+                            (let [level (get skill "Level")]
+                              (if (= level "-") "Innate" level))
                             :persona.skill/skill skill-id})))
                       (remove nil?))
                  (into basic-persona-data
