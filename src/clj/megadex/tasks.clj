@@ -1,5 +1,7 @@
 (ns megadex.tasks
-  (:require [megadex.crawl.p4g :as p4g]))
+  (:require [clojure.java.io :refer [output-stream]]
+            [cognitect.transit :as t]
+            [megadex.crawl.p4g :as p4g]))
 
 (defn generate-p4g-fixture
   []
@@ -18,6 +20,7 @@
             p4g/personas-html
             p4g/personas
             (p4g/personas-fixture (p4g/skills-ids skills)))]
-    (spit "resources/public/fixtures/p4g.edn"
-          (with-out-str (pr {:schema p4g/schema
-                             :fixture (into [] (concat skills personas))})))))
+    (with-open [o (output-stream "resources/public/fixtures/p4g.json")]
+      (let [w (t/writer o :json)]
+        (t/write w {:schema p4g/schema
+                    :fixture (into [] (concat skills personas))})))))

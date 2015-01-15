@@ -3,6 +3,7 @@
   (:require [cljs.core.async :refer [<! chan close! put! sliding-buffer]]
             [cljs.reader :refer [read-string]]
             [cljs-uuid.core :as uuid]
+            [cognitect.transit :as t]
             [datascript :as d]
             [goog.events :as events]
             [goog.history.EventType :as EventType]
@@ -13,10 +14,11 @@
   (into {} (for [[k v] m] [k (f v)])))
 
 
-(defn fetch-edn [url]
-  (let [c (chan (sliding-buffer 1))]
+(defn fetch-transit [url]
+  (let [c (chan (sliding-buffer 1))
+        r (t/reader :json)]
     (.send XhrIo url
-           (fn [e] (put! c (read-string (.getResponseText (.-target e))))))
+           (fn [e] (put! c (t/read r (.getResponseText (.-target e))))))
     c))
 
 

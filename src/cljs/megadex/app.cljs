@@ -143,7 +143,7 @@
       (.initializeTouchEvents js/React true))
     (r/render [loading-page] dom)
     (go-loop []
-      (if-let [{:keys [schema fixture]} (<! (u/fetch-edn "/fixtures/p4g.edn"))]
+      (if-let [{:keys [schema fixture]} (<! (u/fetch-transit "/fixtures/p4g.json"))]
         (let [conn (d/create-conn schema)]
           (d/transact! conn fixture)
           (r/render [router history navigation routes conn] dom))
