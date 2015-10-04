@@ -1,2 +1,2 @@
 {:require  [megadex.app]
- :init-fns [megadex.app/init]}
+ :init-fns [megadex.app/init!]}

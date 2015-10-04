@@ -1,7 +1,7 @@
 (ns megadex.app
-  (:require [reagent.core :as reagent :refer [atom]]))
+  (:require [rum.core :as rum]))
 
-(defn some-component []
+(rum/defc some-component []
   [:div
    [:h3 "I am a component!"]
    [:p.someclass
@@ -9,10 +9,10 @@
     [:span {:style {:color "red"}} " and red"]
     " text."]])
 
-(defn calling-component []
+(rum/defc calling-component []
   [:div "Parent component"
-   [some-component]])
+   (some-component)])
 
-(defn init []
-  (reagent/render-component [calling-component]
-                            (.getElementById js/document "container")))
+(defn init! []
+  (when-let [el (.getElementById js/document "container")]
+    (rum/mount (calling-component) el)))

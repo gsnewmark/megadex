@@ -1,0 +1,2 @@
+{:require  [megadex.devcards]
+ :init-fns [megadex.devcards/init!]}

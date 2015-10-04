@@ -1,6 +1,6 @@
 (ns megadex.app-test
-  (:require-macros [cljs.test :refer [deftest testing is]])
-  (:require [cljs.test :as t]
+  (:require [cljs.test :as t :refer-macros [is]]
+            [devcards.core :refer-macros [deftest]]
             [megadex.app :as app]))
 
 (deftest test-arithmetic []
