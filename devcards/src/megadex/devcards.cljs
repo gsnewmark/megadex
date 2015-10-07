@@ -3,8 +3,8 @@
             [megadex.app :as app]
             [megadex.app-test]))
 
-(defcard check-rum-render
-  (app/calling-component))
+(defcard check-render
+  (app/hello))
 
 (defn init! []
   (devcards.core/start-devcard-ui!))

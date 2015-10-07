@@ -1,18 +1,17 @@
 (ns megadex.app
-  (:require [rum.core :as rum]))
+  (:require [goog.dom :as gdom]
+            [om.next :as om :refer-macros [defui]]
+            [om.dom :as dom]))
 
-(rum/defc some-component []
-  [:div
-   [:h3 "I am a component!"]
-   [:p.someclass
-    "I have " [:strong "bold"]
-    [:span {:style {:color "red"}} " and red"]
-    " text."]])
+(enable-console-print!)
 
-(rum/defc calling-component []
-  [:div "Parent component"
-   (some-component)])
+(defui HelloWorld
+  Object
+  (render [this]
+    (dom/div nil "Hello, world!")))
+
+(def hello (om/factory HelloWorld))
 
 (defn init! []
-  (when-let [el (.getElementById js/document "container")]
-    (rum/mount (calling-component) el)))
+  (when-let [el (gdom/getElement "container")]
+    (js/React.render (hello) el)))
