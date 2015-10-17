@@ -11,7 +11,7 @@
  :source-paths    #{"src/cljs" "src/clj"}
  :resource-paths  #{"resources"}
  :dependencies '[[org.clojure/clojurescript "1.7.122"]
-                 [org.omcljs/om             "0.9.0-SNAPSHOT"]
+                 [org.omcljs/om             "1.0.0-alpha3"]
                  [kibu/pushy                "0.3.4"]
                  [com.domkm/silk            "0.1.1"]
 
