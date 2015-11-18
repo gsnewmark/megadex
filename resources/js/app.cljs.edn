@@ -1,2 +1,3 @@
 {:require  [megadex.app]
- :init-fns [megadex.app/init!]}
+ :init-fns [megadex.app/init!]
+ :compiler-options {:asset-path "js/app.out"}}

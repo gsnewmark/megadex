@@ -1,2 +1,3 @@
 {:require  [megadex.devcards]
- :init-fns [megadex.devcards/init!]}
+ :init-fns [megadex.devcards/init!]
+ :compiler-options {:asset-path "js/devcards.out"}}

@@ -10,20 +10,23 @@
 (set-env!
  :source-paths    #{"src/cljs" "src/clj"}
  :resource-paths  #{"resources"}
- :dependencies '[[org.clojure/clojurescript "1.7.122"]
-                 [org.omcljs/om             "1.0.0-alpha3"]
-                 [kibu/pushy                "0.3.4"]
+ :dependencies '[[org.clojure/clojurescript "1.7.170"]
+                 [org.omcljs/om             "1.0.0-alpha22"]
+                 [kibu/pushy                "0.3.6"]
                  [com.domkm/silk            "0.1.1"]
 
-                 [datascript                "0.13.1"]
+                 [datascript                "0.13.3"]
                  [datascript-transit        "0.2.0"]
 
-                 [devcards                      "0.2.0-3"        :scope "test"]
-                 [adzerk/boot-cljs              "0.0-3308-0"     :scope "test"]
-                 [adzerk/boot-cljs-repl         "0.2.0"          :scope "test"]
-                 [adzerk/boot-reload            "0.3.2"          :scope "test"]
-                 [pandeiro/boot-http            "0.6.3"          :scope "test"]
-                 [crisptrutski/boot-cljs-test   "0.1.0-SNAPSHOT" :scope "test"]
+                 [devcards                      "0.2.1"          :scope "test"]
+                 [adzerk/boot-cljs              "1.7.170-3"      :scope "test"]
+                 [adzerk/boot-cljs-repl         "0.3.0"          :scope "test"]
+                 [com.cemerick/piggieback       "0.2.1"          :scope "test"]
+                 [weasel                        "0.7.0"          :scope "test"]
+                 [org.clojure/tools.nrepl       "0.2.12"         :scope "test"]
+                 [adzerk/boot-reload            "0.4.2"          :scope "test"]
+                 [pandeiro/boot-http            "0.7.1-SNAPSHOT" :scope "test"]
+                 [crisptrutski/boot-cljs-test   "0.2.0-SNAPSHOT" :scope "test"]
                  [org.martinklepsch/boot-garden "1.2.5-7"        :scope "test"]])
 
 (require
